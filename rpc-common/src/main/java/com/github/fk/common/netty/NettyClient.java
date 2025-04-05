@@ -1,0 +1,14 @@
+package com.github.fk.common.netty;
+
+
+import com.github.fk.common.api.Destroyable;
+import com.github.fk.common.api.Initializable;
+
+import java.util.concurrent.Callable;
+
+/**
+ * 客户端接口，实现多个接口来规范（替换掉方法）
+ */
+public interface NettyClient<V> extends Callable<V>,Initializable, Destroyable {
+
+}
