@@ -43,7 +43,6 @@ public class DefaultServerRegisterLocalManager implements ServerRegisterManager{
     public DefaultServerRegisterLocalManager() {
         this.serviceEntryMap = new HashMap<>();
         this.registerCenterChannelMap = new HashMap<>();
-
         heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
         heartbeatExecutor.scheduleAtFixedRate(new HeartbeatThread(), 5, 2, TimeUnit.SECONDS);
     }

@@ -34,7 +34,7 @@ public class RegisterCenterServerHandler extends SimpleChannelInboundHandler {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-        //应该给服务端发送这个信息，而不是注册中心的channel
+        //
         log.info("msg = {}",msg);
         NotifyMessage notifyMessage = (NotifyMessage) msg;
         Object body = notifyMessage.body();

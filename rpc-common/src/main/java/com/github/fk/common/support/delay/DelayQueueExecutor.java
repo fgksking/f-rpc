@@ -26,7 +26,6 @@ public class DelayQueueExecutor implements DelayExecutor{
 
     /**
      * 读取线程
-     * @since 0.1.7
      */
     private static class ReadThread extends Thread {
         private final DelayQueue<DelayElem> delayQueue;

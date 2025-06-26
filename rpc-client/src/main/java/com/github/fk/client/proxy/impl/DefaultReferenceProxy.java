@@ -34,22 +34,22 @@ public class DefaultReferenceProxy<T> implements ReferenceProxy<T> {
             if (interfaceClass == null || !interfaceClass.isInterface()) {
                 throw new IllegalStateException("Service interface must be a non-null interface");
             }
-
             // 2. 校验服务状态
             StatusEnum.assertEnable(proxyContext.statusManager().status());
-
             // 3. 安全获取类加载器
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             if (classLoader == null) {
                 classLoader = interfaceClass.getClassLoader();
             }
-
             // 4. 创建代理
             return (T) Proxy.newProxyInstance(
                     classLoader,
                     new Class[]{interfaceClass},
                     this
             );
+           /* ClassLoader classLoader = interfaceClass.getClassLoader();
+            Class<?>[] interfaces = new Class[]{interfaceClass};
+            return (T) Proxy.newProxyInstance(classLoader, interfaces, this);*/
         } catch (Exception e) {
             throw new RpcRuntimeException("Failed to create proxy for " +
                     proxyContext.serviceId(), e);

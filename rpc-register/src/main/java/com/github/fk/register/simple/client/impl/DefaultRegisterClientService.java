@@ -63,6 +63,9 @@ public class DefaultRegisterClientService implements RegisterClientService {
 
         //TODO 为空？
         Set<Channel> clientSet = serviceClientChannelMap.get(serviceId);
+        if(clientSet==null){
+            return new ArrayList<>();
+        }
         return new ArrayList<>(clientSet);
     }
 
