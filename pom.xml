@@ -13,6 +13,7 @@
         <module>rpc-server</module>
         <module>rpc-common</module>
         <module>rpc-register</module>
+        <module>rpc-consumer-example</module>
     </modules>
 
     <properties>

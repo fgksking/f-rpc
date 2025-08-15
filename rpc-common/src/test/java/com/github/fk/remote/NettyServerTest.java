@@ -1,6 +1,6 @@
 package com.github.fk.remote;
 
-import com.github.fk.remote.netty.impl.DefaultNettyServer;
+import com.github.fk.common.netty.impl.DefaultNettyServer;
 import org.junit.Test;
 
 public class NettyServerTest {
