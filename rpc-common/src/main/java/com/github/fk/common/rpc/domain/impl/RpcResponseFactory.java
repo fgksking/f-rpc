@@ -26,6 +26,8 @@ public final class RpcResponseFactory {
      */
     private static final DefaultRpcResponse INTERRUPTED;
 
+    private static final DefaultRpcResponse UNKNOWED_ERROR;
+
     //TODO 这里可以封装具体的错误
     static {
         TIMEOUT = new DefaultRpcResponse();
@@ -36,6 +38,9 @@ public final class RpcResponseFactory {
 
         INTERRUPTED = new DefaultRpcResponse();
         INTERRUPTED.error(new Exception());
+
+        UNKNOWED_ERROR = new DefaultRpcResponse();
+        UNKNOWED_ERROR.error(new RuntimeException());
     }
 
     /**
@@ -63,5 +68,9 @@ public final class RpcResponseFactory {
      */
     public static RpcResponse interrupted() {
         return INTERRUPTED;
+    }
+
+    public static RpcResponse error(Throwable throwable) {
+        return UNKNOWED_ERROR;
     }
 }

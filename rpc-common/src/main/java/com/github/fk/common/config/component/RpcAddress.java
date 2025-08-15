@@ -1,5 +1,7 @@
 package com.github.fk.common.config.component;
 
+import com.github.fk.common.config.protocol.ProtocolConfig;
+
 import java.util.Objects;
 
 public class RpcAddress {
@@ -21,10 +23,18 @@ public class RpcAddress {
      */
     private int weight;
 
+    private ProtocolConfig protocol;
+
     public RpcAddress(String address, int port) {
         this.address = address;
         this.port = port;
         this.weight = 0;
+    }
+    public RpcAddress(String address, int port,ProtocolConfig protocol) {
+        this.address = address;
+        this.port = port;
+        this.weight = 0;
+        this.protocol = protocol;
     }
 
     public RpcAddress(String address, int port, int weight) {

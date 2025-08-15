@@ -28,6 +28,7 @@ import com.github.fk.common.support.resource.impl.DefaultResourceManager;
 import com.github.fk.common.support.status.StatusManager;
 import com.github.fk.common.support.status.enums.StatusEnum;
 import com.github.fk.common.support.status.impl.DefaultStatusManager;
+import com.github.fk.common.threadpoll.manager.DefaultExecutorRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -67,7 +68,6 @@ public class ClientBus<T> implements ReferenceConfig<T> {
      */
     private List<RpcAddress> rpcAddresses;
 
-
     /**
      * 调用超时时间
      *
@@ -83,11 +83,13 @@ public class ClientBus<T> implements ReferenceConfig<T> {
     private boolean subscribe;
     /**
      * 是否进行泛化调用
+     * 
      * @since 0.1.2
      */
     private boolean generic;
     /**
      * 客户端启动检测
+     * 
      * @since 0.1.5
      */
     private boolean check;
@@ -115,31 +117,35 @@ public class ClientBus<T> implements ReferenceConfig<T> {
 
     /**
      * 调用方式
+     * 
      * @since 0.1.0
      */
     private CallTypeEnum callType;
 
     /**
      * 失败策略
+     * 
      * @since 0.1.1
      */
     private FailTypeEnum failType;
 
     /**
      * 远程调用实现
+     * 
      * @since 0.1.1
      */
     private RemoteInvokeService remoteInvokeService;
 
-
     /**
      * 拦截器
+     * 
      * @since 0.1.4
      */
     private RpcInterceptor rpcInterceptor;
 
     /**
      * 状态管理类
+     * 
      * @since 0.1.3
      */
     private StatusManager statusManager;
@@ -148,8 +154,6 @@ public class ClientBus<T> implements ReferenceConfig<T> {
      * 资源管理类
      */
     private ResourceManager resourceManager;
-
-
 
     /**
      * 新建一个客户端实例
@@ -174,12 +178,13 @@ public class ClientBus<T> implements ReferenceConfig<T> {
      * @since 0.2.0
      */
     private ILoadBalance loadBalance;
-    private ClientBus(){
+
+    private ClientBus() {
         // 初始化信息
         this.rpcAddresses = new ArrayList<>();
         // 默认为 60s 超时
         this.timeout = 60 * 1000;
-        this.registerCenterList =  new ArrayList<>();
+        this.registerCenterList = new ArrayList<>();
         this.callType = CallTypeEnum.SYNC;
         this.failType = FailTypeEnum.FAIL_OVER;
         this.generic = false;
@@ -202,6 +207,7 @@ public class ClientBus<T> implements ReferenceConfig<T> {
      * 获取对应的引用实现
      * （1） 处理所有反射代理信息，各自独立启动
      * （2） 启动对应的长连接
+     * 
      * @return 代理类
      */
 
@@ -216,18 +222,18 @@ public class ClientBus<T> implements ReferenceConfig<T> {
         // 初始化注册中心的服务
         clientRegisterManager.initServerChannelFutureList(queryConfig);
         ServiceContext<T> proxyContext = buildServiceProxyContext();
-        T reference =null;
-        if(!this.generic){
+        T reference = null;
+        if (!this.generic) {
             DefaultReferenceProxy<T> referenceProxy = new DefaultReferenceProxy<>(proxyContext, remoteInvokeService);
             reference = referenceProxy.proxy();
-            if(reference ==null){
+            if (reference == null) {
                 System.out.println("reference 为空！！！！");
             }
-        }else {
+        } else {
 
         }
         proxyContext.statusManager().status(StatusEnum.ENABLE.code());
-        //4. 添加客户端钩子
+        // 4. 添加客户端钩子
         // 设置状态为可用
         final DefaultClientShutdownHook rpcShutdownHook = new DefaultClientShutdownHook();
         rpcShutdownHook.statusManager(statusManager);
@@ -302,7 +308,7 @@ public class ClientBus<T> implements ReferenceConfig<T> {
     @Override
     public ReferenceConfig<T> check(boolean check) {
         this.check = check;
-        return  this;
+        return this;
     }
 
     @Override

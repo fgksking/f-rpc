@@ -18,6 +18,8 @@ import com.github.fk.common.support.resource.impl.DefaultResourceManager;
 import com.github.fk.common.support.status.StatusManager;
 import com.github.fk.common.support.status.enums.StatusEnum;
 import com.github.fk.common.support.status.impl.DefaultStatusManager;
+import com.github.fk.common.threadpoll.manager.DefaultExecutorRepository;
+import com.github.fk.common.threadpoll.manager.ExecutorRepository;
 import com.github.fk.common.utils.ArgUtil;
 import com.github.fk.common.utils.ipUtils;
 import com.github.fk.register.domain.entry.ServiceEntry;
@@ -76,28 +78,33 @@ public class ServerBs implements ServiceRegistry {
 
     /**
      * 状态管理类
+     * 
      * @since 0.1.3
      */
     private StatusManager statusManager;
 
     /**
      * 资源管理类
+     * 
      * @since 0.1.3
      */
     private ResourceManager resourceManager;
 
     /**
      * 调用管理类
+     * 
      * @since 0.1.3
      */
     private InvokeManager invokeManager;
 
     /**
      * 延迟执行器
+     * 
      * @since 0.1.7
      */
     private DelayExecutor delayExecutor;
-    private ServerBs(){
+
+    private ServerBs() {
         this.serviceConfigList = new ArrayList<>();
         this.rpcPort = 9527;
         this.registerCenterList = new ArrayList<>();
@@ -106,27 +113,35 @@ public class ServerBs implements ServiceRegistry {
         this.invokeManager = new DefaultInvokeManager();
         this.serverRegisterManager = new DefaultServerRegisterLocalManager();
         serverRegisterManager.port(rpcPort);
-        delayExecutor =new DelayQueueExecutor();
+        delayExecutor = new DelayQueueExecutor();
+        executorRepository = new DefaultExecutorRepository(null);
     }
-    public static ServerBs getInstance(){
+
+    public static ServerBs getInstance() {
         return INSTANCE;
     }
+
     /**
      * 服务注册中心管理
+     * 
      * @since 0.1.8
      */
     private ServerRegisterManager serverRegisterManager;
+
+
+    private ExecutorRepository executorRepository;
 
     /**
      * （1）主要用于后期服务调用
      * (2) id 唯一
      * （3） 根据RpcRequest获取对应方法
-     * @param serviceId  方法id
-     * @param serviceImpl  接口实现类
+     * 
+     * @param serviceId   方法id
+     * @param serviceImpl 接口实现类
      * @return
      */
     @Override
-    public  synchronized ServerBs register(String serviceId, Object serviceImpl) {
+    public synchronized ServerBs register(String serviceId, Object serviceImpl) {
         ArgUtil.notEmpty(serviceId, "serviceId");
         ArgUtil.notNull(serviceImpl, "serviceImpl");
         ServiceConfig serviceConfig = new DefaultServiceConfig();
@@ -142,8 +157,8 @@ public class ServerBs implements ServiceRegistry {
 
     private void addServiceConfig(ServiceConfig serviceConfig) {
         final String id = serviceConfig.id();
-        for(ServiceConfig config : serviceConfigList) {
-            if(config.id().equals(id)) {
+        for (ServiceConfig config : serviceConfigList) {
+            if (config.id().equals(id)) {
                 log.error("serviceConfig id has been registered, please check for id: {}", id);
                 throw new RpcRuntimeException();
             }
@@ -175,7 +190,7 @@ public class ServerBs implements ServiceRegistry {
                 .registerServicesLocal(serviceConfigList);
         // 2. 启动 netty server 信息
         final ChannelHandler channelHandler = ChannelHandlers
-                .objectCodecHandler(new RpcServerHandler(invokeManager, statusManager));
+                .objectCodecHandler(new RpcServerHandler(invokeManager, statusManager,executorRepository));
         NettyServer nettyServer = DefaultNettyServer.newInstance(rpcPort, channelHandler);
         nettyServer.asyn();
         log.info("server service start finish.");
@@ -198,8 +213,9 @@ public class ServerBs implements ServiceRegistry {
             ChannelHandler registerHandler = ChannelHandlers.objectCodecHandler(rpcServerRegisterHandler);
             log.info("[Rpc Server] start register to {}:{}", rpcAddress.address(),
                     rpcAddress.port());
-            //TODO: 针对配置中心可以进一步细化，比如某一个 ip 变更，做对应的销毁，但是没有必要，一般配置中心变动的可能性较小。
-            DefaultNettyClient nettyClient = DefaultNettyClient.newInstance(rpcAddress.address(), rpcAddress.port(), registerHandler);
+            // TODO: 针对配置中心可以进一步细化，比如某一个 ip 变更，做对应的销毁，但是没有必要，一般配置中心变动的可能性较小。
+            DefaultNettyClient nettyClient = DefaultNettyClient.newInstance(rpcAddress.address(), rpcAddress.port(),
+                    registerHandler);
             ChannelFuture channelFuture = nettyClient.call();
             resourceManager.addDestroy(nettyClient);
 
@@ -220,7 +236,7 @@ public class ServerBs implements ServiceRegistry {
 
             // 兼容小于 0 的情况
             long delayMills = config.delay();
-            if(delayMills <= 0) {
+            if (delayMills <= 0) {
                 delayMills = 0;
             }
 
@@ -232,9 +248,9 @@ public class ServerBs implements ServiceRegistry {
                     log.info("[Rpc Server] serviceId: {} delay init start.", serviceId);
                     // 服务端通知到注册中心
                     final String hostIp = ipUtils.getLocalIp();
-                    log.info("服务端地址 ： {}",hostIp);
+                    log.info("服务端地址 ： {}", hostIp);
                     ServiceEntry serviceEntry = ServiceEntryBuilder.of(config.id(), "127.0.0.1", rpcPort);
-                    log.info("注册到注册中心的元数据为= {}",serviceEntry);
+                    log.info("注册到注册中心的元数据为= {}", serviceEntry);
                     serverRegisterManager.register(serviceEntry);
 
                     // 4. 添加服务端钩子函数
@@ -250,14 +266,18 @@ public class ServerBs implements ServiceRegistry {
         rpcShutdownHook.invokeManager(invokeManager);
         rpcShutdownHook.resourceManager(resourceManager);
         rpcShutdownHook.serverRegisterManager(serverRegisterManager);
+        // 添加线程池关闭钩子
+        ShutdownHooks.rpcShutdownHook(() -> {
+            log.info("开始关闭服务端线程池...");
+            executorRepository.shutdown();
+        });
         ShutdownHooks.rpcShutdownHook(rpcShutdownHook);
-
-
 
     }
 
     /**
-     *  添加注册中心地址
+     * 添加注册中心地址
+     * 
      * @param addresses
      * @return
      */

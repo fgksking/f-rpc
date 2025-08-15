@@ -12,10 +12,7 @@ public class DefaultProtocolConfig implements ProtocolConfig {
      */
     private String name;
 
-    /**
-     * 协议端口号
-     */
-    private int port;
+
 
     @Override
     public String name() {
@@ -27,13 +24,4 @@ public class DefaultProtocolConfig implements ProtocolConfig {
         return this;
     }
 
-    @Override
-    public int port() {
-        return port;
-    }
-
-    public DefaultProtocolConfig port(int port) {
-        this.port = port;
-        return this;
-    }
 }
